@@ -26,14 +26,19 @@ Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 22
 Title.AutoButtonColor = false -- Mouse ile renk değişimi olmasın
+Title.ZIndex = 2 -- Buton diğer butonların önünde olsun
 
---// Sürüklenebilirlik
-local dragging, mousePos, startPos
-MainFrame.InputBegan:Connect(function(input)
+--// Sürüklenebilirlik (sadece başlıkta)
+local dragging = false
+local dragStartPos = nil
+local dragMouseStartPos = nil
+
+Title.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true
-		mousePos = input.Position
-		startPos = MainFrame.Position
+		dragMouseStartPos = input.Position
+		dragStartPos = MainFrame.Position
+		
 		input.Changed:Connect(function()
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
@@ -41,12 +46,13 @@ MainFrame.InputBegan:Connect(function(input)
 		end)
 	end
 end)
+
 UserInputService.InputChanged:Connect(function(input)
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - mousePos
+		local delta = input.Position - dragMouseStartPos
 		MainFrame.Position = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+			dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X,
+			dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y
 		)
 	end
 end)
@@ -130,17 +136,15 @@ task.spawn(function()
 			local hrp = char:FindFirstChild("HumanoidRootPart")
 			local target = workspace:FindFirstChild("EffectStorage")
 			if target and target:FindFirstChild("Mark01") and hrp then
-				-- 3 kat daha ileri ışınla (Z ekseninde)
 				hrp.CFrame = hrp.CFrame + Vector3.new(0, 0, 30)
 				task.wait(0.5)
-				-- Sell noktasına ışınla
 				hrp.CFrame = target.Mark01.CFrame + Vector3.new(0, 5, 0)
 			end
 		end
 	end
 end)
 
---// Bring Sell Part Buton (Detector'ı çekme)
+--// Bring Sell Part Buton
 local BringSellBtn = Instance.new("TextButton", MainFrame)
 BringSellBtn.Size = UDim2.new(1, -20, 0, 40)
 BringSellBtn.Position = UDim2.new(0, 10, 0, 290)
@@ -152,23 +156,21 @@ BringSellBtn.TextSize = 20
 table.insert(buttonsToToggle, BringSellBtn)
 
 local bringSell = false
-local originalCFrame = nil  -- Orijinal pozisyonu tutacak
+local originalCFrame = nil
 
 BringSellBtn.MouseButton1Click:Connect(function()
 	bringSell = not bringSell
 	BringSellBtn.Text = "Bring Sell Part: " .. (bringSell and "ON" or "OFF")
-	
+
 	local effectStorage = workspace:FindFirstChild("EffectStorage")
 	local mark01 = effectStorage and effectStorage:FindFirstChild("Mark01")
 	local detector = mark01 and mark01:FindFirstChild("Detector")
-	
+
 	if detector then
 		if originalCFrame == nil then
-			originalCFrame = detector.CFrame -- İlk tıklamada orijinal pozisyonu al
+			originalCFrame = detector.CFrame
 		end
-		
 		if not bringSell then
-			-- OFF ise orijinal pozisyona geri gönder
 			detector.CFrame = originalCFrame
 		end
 	else
@@ -178,7 +180,7 @@ end)
 
 task.spawn(function()
 	while true do
-		task.wait(2.5) 
+		task.wait(2.5)
 		if bringSell then
 			local char = LocalPlayer.Character
 			local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -395,20 +397,20 @@ end)
 -- // EMIR HUB başlığı butonuna tıklayınca küçültme / eski haline getirme (Tween ile)
 local isMinimized = false
 Title.MouseButton1Click:Connect(function()
+	-- Eğer sürüklenme halindeyse tıklama işleme almasın
+	if dragging then return end
+	
 	if not isMinimized then
-		-- Daralt (kapanış)
 		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local sizeTween = TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 260, 0, 30)})
 		sizeTween:Play()
 		
-		-- Butonları gizle
 		for _, btn in pairs(buttonsToToggle) do
 			btn.Visible = false
 		end
 		
 		isMinimized = true
 	else
-		-- Eski boyuta getir (aç)
 		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local sizeTween = TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 260, 0, 380)})
 		sizeTween:Play()

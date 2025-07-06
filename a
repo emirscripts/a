@@ -89,27 +89,36 @@ task.spawn(function()
 	end
 end)
 
---// Teleport to Buy Buton
+--// Open Buy GUI Butonu (Eskiden: Teleport to Buy)
 local TPBuyBtn = Instance.new("TextButton", MainFrame)
 TPBuyBtn.Size = UDim2.new(1, -20, 0, 40)
 TPBuyBtn.Position = UDim2.new(0, 10, 0, 90)
 TPBuyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 TPBuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-TPBuyBtn.Text = "Teleport to Buy"
+TPBuyBtn.Text = "Open Buy GUI"
 TPBuyBtn.Font = Enum.Font.SourceSansBold
 TPBuyBtn.TextSize = 20
 table.insert(buttonsToToggle, TPBuyBtn)
 
 TPBuyBtn.MouseButton1Click:Connect(function()
-	local target = workspace:FindFirstChild("EffectStorage")
-	if target and target:FindFirstChild("Mark02") then
-		local part = target.Mark02
-		local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-		if char:FindFirstChild("HumanoidRootPart") then
-			char.HumanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 5, 0)
+	local gui = LocalPlayer:FindFirstChild("PlayerGui")
+	if gui then
+		local mainGui = gui:FindFirstChild("Main_Gui")
+		if mainGui then
+			local upgradeMenu = mainGui:FindFirstChild("UpgradeMenu_Frame")
+			if upgradeMenu then
+				upgradeMenu.Visible = true
+			else
+				warn("UpgradeMenu_Frame bulunamadı!")
+			end
+		else
+			warn("Main_Gui bulunamadı!")
 		end
+	else
+		warn("PlayerGui bulunamadı!")
 	end
 end)
+
 
 --// Auto Sell Buton
 local AutoSellBtn = Instance.new("TextButton", MainFrame)

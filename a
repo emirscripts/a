@@ -1,5 +1,6 @@
 --// Servisler
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
@@ -16,14 +17,15 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 
---// Başlık
-local Title = Instance.new("TextLabel", MainFrame)
+--// Başlık (Button yapıldı)
+local Title = Instance.new("TextButton", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Title.Text = "EMIR HUB"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 22
+Title.AutoButtonColor = false -- Mouse ile renk değişimi olmasın
 
 --// Sürüklenebilirlik
 local dragging, mousePos, startPos
@@ -49,6 +51,9 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
+-- Butonlar listesi, tween için gizle/gösterme
+local buttonsToToggle = {}
+
 --// Auto Click Buton
 local AutoClickBtn = Instance.new("TextButton", MainFrame)
 AutoClickBtn.Size = UDim2.new(1, -20, 0, 40)
@@ -58,6 +63,7 @@ AutoClickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoClickBtn.Text = "Auto Click: OFF"
 AutoClickBtn.Font = Enum.Font.SourceSansBold
 AutoClickBtn.TextSize = 20
+table.insert(buttonsToToggle, AutoClickBtn)
 
 local autoClick = false
 AutoClickBtn.MouseButton1Click:Connect(function()
@@ -86,6 +92,7 @@ TPBuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 TPBuyBtn.Text = "Teleport to Buy"
 TPBuyBtn.Font = Enum.Font.SourceSansBold
 TPBuyBtn.TextSize = 20
+table.insert(buttonsToToggle, TPBuyBtn)
 
 TPBuyBtn.MouseButton1Click:Connect(function()
 	local target = workspace:FindFirstChild("EffectStorage")
@@ -107,6 +114,7 @@ AutoSellBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoSellBtn.Text = "Auto Sell: OFF"
 AutoSellBtn.Font = Enum.Font.SourceSansBold
 AutoSellBtn.TextSize = 20
+table.insert(buttonsToToggle, AutoSellBtn)
 
 local autoSell = false
 AutoSellBtn.MouseButton1Click:Connect(function()
@@ -114,7 +122,6 @@ AutoSellBtn.MouseButton1Click:Connect(function()
 	AutoSellBtn.Text = "Auto Sell: " .. (autoSell and "ON" or "OFF")
 end)
 
--- Auto Sell IŞINLAMALI (3x ileri)
 task.spawn(function()
 	while true do
 		task.wait(0.7)
@@ -142,6 +149,7 @@ BringSellBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 BringSellBtn.Text = "Bring Sell Part: OFF"
 BringSellBtn.Font = Enum.Font.SourceSansBold
 BringSellBtn.TextSize = 20
+table.insert(buttonsToToggle, BringSellBtn)
 
 local bringSell = false
 local originalCFrame = nil  -- Orijinal pozisyonu tutacak
@@ -184,7 +192,6 @@ task.spawn(function()
 	end
 end)
 
-
 --// Boss Area Teleporter Butonu
 local BossBtn = Instance.new("TextButton", MainFrame)
 BossBtn.Size = UDim2.new(1, -20, 0, 40)
@@ -194,6 +201,7 @@ BossBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 BossBtn.Text = "Boss Area Teleporter"
 BossBtn.Font = Enum.Font.SourceSansBold
 BossBtn.TextSize = 20
+table.insert(buttonsToToggle, BossBtn)
 
 --// Speed Changer Butonu
 local SpeedBtn = Instance.new("TextButton", MainFrame)
@@ -204,6 +212,7 @@ SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedBtn.Text = "Speed Changer"
 SpeedBtn.Font = Enum.Font.SourceSansBold
 SpeedBtn.TextSize = 20
+table.insert(buttonsToToggle, SpeedBtn)
 
 --// Boss Panel
 local BossFrame = Instance.new("Frame", gui)
@@ -380,5 +389,36 @@ task.spawn(function()
 				end
 			end
 		end
+	end
+end)
+
+-- // EMIR HUB başlığı butonuna tıklayınca küçültme / eski haline getirme (Tween ile)
+local isMinimized = false
+Title.MouseButton1Click:Connect(function()
+	if not isMinimized then
+		-- Daralt (kapanış)
+		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local sizeTween = TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 260, 0, 30)})
+		sizeTween:Play()
+		
+		-- Butonları gizle
+		for _, btn in pairs(buttonsToToggle) do
+			btn.Visible = false
+		end
+		
+		isMinimized = true
+	else
+		-- Eski boyuta getir (aç)
+		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local sizeTween = TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 260, 0, 380)})
+		sizeTween:Play()
+		
+		sizeTween.Completed:Connect(function()
+			for _, btn in pairs(buttonsToToggle) do
+				btn.Visible = true
+			end
+		end)
+		
+		isMinimized = false
 	end
 end)

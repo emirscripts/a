@@ -11,7 +11,7 @@ gui.ResetOnSpawn = false
 
 --// Ana Frame
 local MainFrame = Instance.new("Frame", gui)
-MainFrame.Size = UDim2.new(0, 260, 0, 380)
+MainFrame.Size = UDim2.new(0, 260, 0, 420)
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 0
@@ -485,3 +485,99 @@ task.spawn(function()
 	end
 end)
 
+-- Auto Kill Bosses Butonu (MainFrame içine)
+local AutoKillBossBtn = Instance.new("TextButton", MainFrame)
+AutoKillBossBtn.Size = UDim2.new(1, -20, 0, 40)
+AutoKillBossBtn.Position = UDim2.new(0, 10, 0, 290) -- uygun pozisyon
+AutoKillBossBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+AutoKillBossBtn.TextColor3 = Color3.new(1, 1, 1)
+AutoKillBossBtn.Font = Enum.Font.SourceSansBold
+AutoKillBossBtn.TextSize = 20
+AutoKillBossBtn.Text = "Auto Kill Bosses"
+table.insert(buttonsToToggle, AutoKillBossBtn)
+
+-- Auto Kill Bosses Paneli (MainFrame içine)
+local AutoKillBossPanel = Instance.new("ScrollingFrame", MainFrame)
+AutoKillBossPanel.Size = UDim2.new(1, -20, 0, 110)  -- panel yüksekliği 110 px, istersen arttırabilirsin
+AutoKillBossPanel.Position = UDim2.new(0, 10, 0, 335) -- butonun hemen altında
+AutoKillBossPanel.Visible = false
+AutoKillBossPanel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+AutoKillBossPanel.CanvasSize = UDim2.new(0, 0, 0, 2000)
+AutoKillBossPanel.ScrollBarThickness = 6
+
+AutoKillBossBtn.MouseButton1Click:Connect(function()
+	AutoKillBossPanel.Visible = not AutoKillBossPanel.Visible
+end)
+
+-- Bossları oyuncunun önüne getirir
+local function bringBoss(spawnNames)
+	local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	for _, name in ipairs(spawnNames) do
+		local npcFolder = workspace:FindFirstChild("NPC")
+		local model = npcFolder and npcFolder:FindFirstChild(name)
+		if model and model:IsA("Model") then
+			for _, part in ipairs(model:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CFrame = hrp.CFrame + Vector3.new(0, 5, -12.5)
+				end
+			end
+		end
+	end
+end
+
+local toggles = {}
+local running = {}
+
+local function createToggleButton(name, spawnNames, yPos)
+	local btn = Instance.new("TextButton", AutoKillBossPanel)
+	btn.Size = UDim2.new(1, -10, 0, 35)
+	btn.Position = UDim2.new(0, 5, 0, yPos)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 18
+	btn.Text = name .. ": OFF"
+
+	toggles[name] = false
+
+	btn.MouseButton1Click:Connect(function()
+		toggles[name] = not toggles[name]
+		btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
+
+		if toggles[name] and not running[name] then
+			running[name] = true
+			task.spawn(function()
+				while toggles[name] do
+					bringBoss(spawnNames)
+					task.wait(2.5)
+				end
+				running[name] = false
+			end)
+		end
+	end)
+end
+
+-- Boss 1 (Hem Angel hem Demon)
+createToggleButton("Auto Farm Boss 1", {
+	"Demon_1_SpawnPart_1",
+	"Demon_1_SpawnPart_2",
+	"Angel_1_SpawnPart_1",
+	"Angel_1_SpawnPart_2",
+}, 0)
+
+-- Boss 2-15 (Angel ve Demon ayrı)
+local y = 40
+for i = 2, 15 do
+	createToggleButton("Auto Farm Angel Boss "..i, {
+		"Angel_"..i.."_SpawnPart_1",
+		"Angel_"..i.."_SpawnPart_2"
+	}, y)
+	y += 40
+	createToggleButton("Auto Farm Demon Boss "..i, {
+		"Demon_"..i.."_SpawnPart_1",
+		"Demon_"..i.."_SpawnPart_2"
+	}, y)
+	y += 40
+end

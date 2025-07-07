@@ -521,11 +521,13 @@ local function bringBoss(spawnNames)
 			for _, part in ipairs(model:GetDescendants()) do
 				if part:IsA("BasePart") then
 					part.CFrame = hrp.CFrame + Vector3.new(0, 5, -12.5)
+					part.Anchored = true -- Burada ancor aktif edildi
 				end
 			end
 		end
 	end
 end
+
 
 local toggles = {}
 local running = {}

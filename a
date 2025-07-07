@@ -433,3 +433,55 @@ Title.MouseButton1Click:Connect(function()
 		isMinimized = false
 	end
 end)
+--// Fast Animations Butonu
+local FastAnimBtn = Instance.new("TextButton", MainFrame)
+FastAnimBtn.Size = UDim2.new(1, -20, 0, 40)
+FastAnimBtn.Position = UDim2.new(0, 10, 0, 340)
+FastAnimBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 90)
+FastAnimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FastAnimBtn.Text = "Fast Animations: OFF"
+FastAnimBtn.Font = Enum.Font.SourceSansBold
+FastAnimBtn.TextSize = 20
+table.insert(buttonsToToggle, FastAnimBtn)
+
+local fastAnimEnabled = false
+
+FastAnimBtn.MouseButton1Click:Connect(function()
+	fastAnimEnabled = not fastAnimEnabled
+	FastAnimBtn.Text = "Fast Animations: " .. (fastAnimEnabled and "ON" or "OFF")
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(0)
+		if fastAnimEnabled then
+			local char = LocalPlayer.Character
+			if not char then continue end
+
+			local tool = char:FindFirstChildOfClass("Tool")
+			if not tool then continue end
+
+			local humanoid = char:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+					if track and track.IsPlaying and track.Length > 0 and track.Speed ~= 2 then
+						pcall(function()
+							track:AdjustSpeed(2)
+						end)
+					end
+				end
+			end
+
+			for _, obj in ipairs(tool:GetDescendants()) do
+				if obj:IsA("NumberValue") or obj:IsA("IntValue") then
+					if string.find(obj.Name:lower(), "cooldown") or string.find(obj.Name:lower(), "delay") then
+						pcall(function()
+							obj.Value = 0
+						end)
+					end
+				end
+			end
+		end
+	end
+end)
+

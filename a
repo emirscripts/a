@@ -514,19 +514,23 @@ local function bringBoss(spawnNames)
 	local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 
+	local npcFolder = workspace:FindFirstChild("NPC")
+	if not npcFolder then return end
+
 	for _, name in ipairs(spawnNames) do
-		local npcFolder = workspace:FindFirstChild("NPC")
-		local model = npcFolder and npcFolder:FindFirstChild(name)
+		local model = npcFolder:FindFirstChild(name)
 		if model and model:IsA("Model") then
+			-- Tüm parçaları oyuncunun üstüne taşı
 			for _, part in ipairs(model:GetDescendants()) do
 				if part:IsA("BasePart") then
-					part.CFrame = hrp.CFrame + Vector3.new(0, 5, -12.5)
-					part.Anchored = true -- Burada ancor aktif edildi
+					part.CFrame = hrp.CFrame + Vector3.new(0, 5, 0)
+					part.Anchored = true -- Anchor işlemi burada
 				end
 			end
 		end
 	end
 end
+
 
 
 local toggles = {}

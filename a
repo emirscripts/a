@@ -517,17 +517,15 @@ local function bringBoss(spawnNames)
 	local npcFolder = workspace:FindFirstChild("NPC")
 	if not npcFolder then return end
 
-	-- 3 kat sağ + 3 kat ön + 5 birim yukarı
-	local offset = hrp.CFrame.RightVector * 3 + hrp.CFrame.LookVector * 3 + Vector3.new(0, 5, 0)
-	local targetPos = hrp.Position + offset
-
 	for _, name in ipairs(spawnNames) do
 		local model = npcFolder:FindFirstChild(name)
 		if model and model:IsA("Model") then
 			for _, part in ipairs(model:GetDescendants()) do
 				if part:IsA("BasePart") then
 					part.Anchored = true
-					part.CFrame = CFrame.new(targetPos)
+					-- 3 birim sağ + 3 birim ön + 5 yukarı
+					local offset = hrp.CFrame.RightVector * 3 + hrp.CFrame.LookVector * 3 + Vector3.new(0, 5, 0)
+					part.CFrame = CFrame.new(hrp.Position + offset)
 				end
 			end
 		end

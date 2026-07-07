@@ -1,4 +1,4 @@
---// Servisler
+print("Subscribe to @EmirScripts on Youtube!")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
